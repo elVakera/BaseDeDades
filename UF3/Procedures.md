@@ -95,7 +95,7 @@ DELIMITER ;
 ~~~
 ##EX5
 ~~~mysql
-
+por
 ~~~
 ##EX6
 ~~~mysql
