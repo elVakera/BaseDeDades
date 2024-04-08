@@ -1,120 +1,99 @@
 #PROCEDURES
 ##EX1
 ~~~mysql
-DELIMITER //
 
-DROP FUNCTION IF EXISTS spData //
-CREATE FUNCTION spData(pData DATE) 
-RETURNS CHAR (10) DETERMINISTIC
-BEGIN
-    DECLARE vReturn CHAR(10);
-	SET vReturn = DATE_FORMAT(pData, "%d-%m-%Y");
-	RETURN vReturn;
-END
-//
-DELIMITER ;DELIMITER //
-
-DROP FUNCTION IF EXISTS spData //
-CREATE FUNCTION spData(pData DATE) 
-RETURNS CHAR (10) DETERMINISTIC
-BEGIN
-    DECLARE vReturn CHAR(10);
-	SET vReturn = DATE_FORMAT(pData, "%d-%m-%Y");
-	RETURN vReturn;
-END
-//
-DELIMITER ;
 ~~~
 ##EX2
 ~~~mysql
 DELIMITER //
-DROP FUNCTION IF EXISTS spPotencia //
-CREATE FUNCTION spPotencia(pBase INT, pExponent INT)
-RETURNS INT DETERMINISTIC
+DROP PROCEDURE IF EXISTS spIntercanvi //
+CREATE PROCEDURE spIntercanvi(IN pEmpleat_id1 INT, IN pEmpleat_id2 INT)
 BEGIN
-	DECLARE vReturn INT;
-	DECLARE vPotencia INT;
-    
-	IF pBase IS NOT NULL AND pExponent IS NOT NULL THEN
-		SET vPotencia = pExponent;
-		SET vReturn = pBase;
-
-		WHILE (vPotencia > 0) DO
-			SET vReturn = vReturn * pBase;
-			SET vPotencia = vPotencia - 1;
-		END WHILE;
-    END IF;
-    
-	RETURN vReturn;
-END
-//
-DELIMITER ;
+    DECLARE vSalari DECIMAL (8,2);
+    -- Comprobar si existeix empleat
+    IF(SELECT empleat_id
+            FROM empleats
+       WHERE empleat_id = pEmpleat_id1) IS NOT NULL
+       AND SELECT empleat_id
+            FROM empleats
+       WHERE empleat_id = pEmpleat_id2) IS NOT NULL
+       THEN
+    -- Intercanviar salaris
+       SELECT salari INTO vSalari
+            FROM emplets 
+            
+       
 ~~~
 ##EX3
 ~~~mysql
 DELIMITER //
-DROP FUNCTION IF EXISTS spIncrement //
-CREATE FUNCTION spIncrement(pCodiEmpleat INT, pIncrement INT)
-RETURNS FLOAT NOT DETERMINISTIC READS SQL DATA
+DROP PROCEDURE IF EXISTS spIntercanvi //
+CREATE PROCEDURE spIntercanvi(IN pEmpleat_id1 INT, IN pEmpleat_id2 INT)
 BEGIN
-	DECLARE vReturn FLOAT;
-    DECLARE vSalari FLOAT;
+    -- Comprovar si els empleats existeixen
+    IF spExisteixEmpleat (pEmpleat_id1) = 1
+        AND spExisteixEmpleat (pEmpleat_id2) = 1 THEN
+    -- Obtenir departament_id de pEmpleat_id1
     
-    IF pCodiEmpleat IS NOT NULL AND pIncrement IS NOT NULL THEN
-		SELECT salari
-			FROM empleats
-		WHERE empleat_id = pCodiEmpleat INTO vSalari;
-		SET vReturn = vSalari + (vSalari * pIncrement / 100);
-    END IF;
+    -- Modificar departament_id de pEmpleat_id2
+       UPDATE empleats
+            departament_id = (SELECT epartament_id
+                                    FROM empleats
+                              WHERE empleat_id = pEmpleat_id1;
     
-    RETURN vReturn;
-END
-//
-DELIMITER ;
-
+END;
+//                            
 ~~~
 ##EX4
 ~~~mysql
 DELIMITER //
-DROP FUNCTION IF EXISTS spPringat //
-CREATE FUNCTION spPringat(pCodiDep INT)
-RETURNS INT NOT DETERMINISTIC READS SQL DATA
+DROP PROCEDURE IF EXISTS spMoureEmpleats //
+CREATE PROCEDURE spMoureEmpleats(IN pDep_Id1 INT, IN pDep_Id2 INT)
 BEGIN
-	DECLARE vReturn INT;
-    DECLARE vSalari INT;
-    SET vSalari = (SELECT MIN(salari)
-						FROM empleats
-					WHERE departament_id = pCodiDep);
-	SET vReturn = (SELECT empleat_id
-						FROM empleats
-					WHERE departament_id = pCodiDep && salari = vSalari);
-	RETURN vReturn;
-END
+    UPDATE empleats
+        SET departament_id = pDep_Id1
+    WHERE departament_id = pDep_id2;
+END;
 //
-DELIMITER ;
 ~~~
 ##EX5
 ~~~mysql
-por
+DELIMITER //
+DROP PROCEDURE IF EXISTS spMostrarEmpleats //
+CREATE PROCEDURE spMostrarEmpleats()
+BEGIN
+    SELECT e.empleat_id, e.nom AS nom_empleat, d.nom AS nom_departament, l.ciutat
+        FROM empleats e
+        INNER JOIN departament d ON d.departament_id = e.departament_id
+        INNER JOIN localitzacions l ON l.localitzacio_id = d.localitzacio_id;
+END;
+//
 ~~~
 ##EX6
 ~~~mysql
-
+DELIMITER //
+DROP PROCEDURE IF EXISTS spInfoEmpleats //
+CREATE PROCEDURE spInfoEmpleats()
+BEGIN
+    SELECT *
+        FORM empleats;
+END;
+//
 ~~~
 ##EX7
 ~~~mysql
-
+DELIMITER //
+DROP PROCEDURE IF EXISTS spRegistro //
+CREATE PROCEDURE spRegistro(IN pEmpleat_id INT)
+BEGIN
+    CREATE TABLE IF NOT EXISTS registres
+    (
+    empleat_id      TINYINT,
+    sesio           DATETIME,
+    CONSTRAINT pk_registre PRIMARY KEY (empleat_id, sesio);
+    );
+    INSERT INTO registres SELECT (empleat_id, sesio) VALUE(pEmpleat_id, CONCAT(CURDATE(), NOW()));
+    
+END;
+//
 ~~~
-##EX8
-~~~mysql
-
-~~~
-##EX9
-~~~mysql
-
-~~~
-##EX10
-~~~mysql
-
-~~~
-
